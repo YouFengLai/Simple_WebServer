@@ -12,7 +12,7 @@ public:
             throw std::exception();
     }
 
-    bool lock(pthread_mutex_t m){
+    bool lock(){
         return pthread_mutex_lock(&mutex) == 0;
     }
 
@@ -24,6 +24,10 @@ public:
         pthread_mutex_destroy(&mutex);
     }
 
+    pthread_mutex_t* get(){
+        return &mutex;
+    }
+
 private:
     pthread_mutex_t mutex;
 };
@@ -31,30 +35,31 @@ private:
 class condition{
 public:
     condition(){
-        if(pthread_mutex_init(&mutex, NULL) != 0)
-            throw std::exception();
         if(pthread_cond_init(&cond, NULL) != 0)
             throw std::exception();
     }
 
     ~condition(){
-        pthread_mutex_destroy(&mutex);
         pthread_cond_destroy(&cond);
     }
 
-    bool wait(){
+    bool wait(pthread_mutex_t* _mutex){
         int res = 0;
-        pthread_mutex_lock(&mutex);
-        res = pthread_cond_wait(&cond, &mutex);
-        pthread_mutex_unlock(&mutex);
+        // pthread_mutex_lock(&mutex);
+        res = pthread_cond_wait(&cond, _mutex);
+        // pthread_mutex_unlock(&mutex);
         return res == 0;
     }
 
     bool singal(){
         return pthread_cond_signal(&cond) == 0;
     }
+
+    bool broadcast(){
+        return pthread_cond_broadcast(&cond) == 0;
+    }
 private:
-    pthread_mutex_t mutex;
+    // pthread_mutex_t mutex;
     pthread_cond_t cond;
 };
 
